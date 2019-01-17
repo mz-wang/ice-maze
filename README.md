@@ -2,5 +2,29 @@
 
 Usage:
 ```
-> go run generate.go
+> make run
+```
+
+Example:
+```
++------E--------------------------X----+
+|  o   o  o                         o  |
+|                 o    o               |
+|  o                        o    o     |
+|  o     o     o                       |
+|             o       o              o |
+|            o    o                   o|
+|        o        o     o            o |
+|        o                             |
+|      o             o   o             |
+|    o o                      oo    o o|
+|           o                          |
+|   o    o                             |
+|                                      |
+|        o    o           o  o         |
+|o      oo                         o   |
+|o               o      o           oo |
+|                            o         |
+|               o                      |
++--------------------------------------+
 ```
