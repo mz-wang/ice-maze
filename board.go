@@ -5,6 +5,15 @@ import (
 	"sort"
 )
 
+type Direction string
+
+const (
+	Up    Direction = "U"
+	Down  Direction = "D"
+	Left  Direction = "L"
+	Right Direction = "R"
+)
+
 type Board struct {
 	X         int
 	Y         int
@@ -61,15 +70,6 @@ func (b *Board) Print() {
 		}
 	}
 }
-
-type Direction string
-
-const (
-	Up    Direction = "U"
-	Down  Direction = "D"
-	Left  Direction = "L"
-	Right Direction = "R"
-)
 
 func (b *Board) Solve() *Board {
 	d := b.Empty(b.Entrance)
@@ -133,13 +133,13 @@ func (b *Board) Next(t *Tile, d Direction) *Tile {
 
 func (b *Board) Walk(t *Tile, d Direction, path bool) *Tile {
 	c := t
-	if path {
+	if path && t.Value != Entrance {
 		t.Value = Path
 	}
 
-	for n := b.Next(t, d); n != nil && (n.Value == Empty || n.Value == Exit); n = b.Next(n, d) {
+	for n := b.Next(t, d); n != nil && (n.Value == Empty || n.Value == Path || n.Value == Exit); n = b.Next(n, d) {
 		c = n
-		if path {
+		if path && n.Value != Entrance && n.Value != Exit {
 			n.Value = Path
 		}
 	}
@@ -150,10 +150,11 @@ func (b *Board) Walk(t *Tile, d Direction, path bool) *Tile {
 func (b *Board) Traverse(t *Tile, s []Direction) {
 	t.Visited = true
 	e := b.Empty(t)
+
 	for _, d := range e {
 		w := b.Walk(t, d, false)
 
-		if w == nil {
+		if w == nil || w.Value == Entrance {
 			continue
 		}
 

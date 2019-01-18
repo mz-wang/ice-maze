@@ -48,6 +48,12 @@ func main() {
 	for len(b.Solutions) != 1 {
 		b = NewBoard(x, y, n).Solve()
 	}
+
+	t := b.Entrance
+	for _, d := range b.Solutions[0] {
+		t = b.Walk(t, d, true)
+	}
+
 	b.Print()
 	fmt.Println("solution", b.Solutions[0])
 }
