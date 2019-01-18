@@ -44,5 +44,10 @@ func usage() {
 }
 
 func main() {
-	NewBoard(x, y, n).Print()
+	b := NewBoard(x, y, n).Solve()
+	for len(b.Solutions) != 1 {
+		b = NewBoard(x, y, n).Solve()
+	}
+	b.Print()
+	fmt.Println("solution", b.Solutions[0])
 }

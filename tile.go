@@ -15,7 +15,8 @@ const (
 )
 
 type Tile struct {
-	X     int      `json:"x"`
-	Y     int      `json:"y"`
-	Value TileType `json:"value"`
+	X       int      `json:"x"`
+	Y       int      `json:"y"`
+	Value   TileType `json:"value"`
+	Visited bool
 }
