@@ -75,8 +75,7 @@ func (b *Board) Solve() *Board {
 	d := b.Empty(b.Entrance)
 	if len(d) > 0 {
 		c := b.Next(b.Entrance, d[0])
-		t := b.Walk(c, d[0], false)
-		b.Traverse(t, []Direction{d[0]})
+		b.Traverse(c, []Direction{})
 		sort.Slice(b.Solutions, func(i, j int) bool {
 			return len(b.Solutions[i]) < len(b.Solutions[j])
 		})
