@@ -2,7 +2,8 @@
 
 Usage:
 ```
-> make run
+> make
+> ./generate x y n
 ```
 
 Example:
