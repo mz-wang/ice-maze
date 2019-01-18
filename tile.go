@@ -11,11 +11,11 @@ const (
 
 	Entrance TileType = "E"
 	Exit     TileType = "X"
+	Path     TileType = "."
 )
 
 type Tile struct {
-	X       int      `json:"x"`
-	Y       int      `json:"y"`
-	Value   TileType `json:"value"`
-	Visited bool
+	X     int      `json:"x"`
+	Y     int      `json:"y"`
+	Value TileType `json:"value"`
 }

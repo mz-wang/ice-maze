@@ -5,16 +5,16 @@ import "fmt"
 type Board struct {
 	X        int
 	Y        int
-	Grid     []Tile
-	Entrance Tile
-	Exit     Tile
+	Grid     []*Tile
+	Entrance *Tile
+	Exit     *Tile
 }
 
-func NewBoard(x, y, n int) Board {
-	grid := make([]Tile, 0, x*y)
+func NewBoard(x, y, n int) *Board {
+	grid := make([]*Tile, 0, x*y)
 
 	for i := 0; i < x*y; i++ {
-		grid = append(grid, Tile{
+		grid = append(grid, &Tile{
 			X:     i % x,
 			Y:     i / x,
 			Value: GetTileType(i, x, y),
@@ -40,7 +40,7 @@ func NewBoard(x, y, n int) Board {
 		}
 	}
 
-	return Board{
+	return &Board{
 		X:        x,
 		Y:        y,
 		Grid:     grid,
@@ -49,7 +49,7 @@ func NewBoard(x, y, n int) Board {
 	}
 }
 
-func (b Board) Print() {
+func (b *Board) Print() {
 	for i, t := range b.Grid {
 		fmt.Print(t.Value)
 		if i%b.X == b.X-1 {
