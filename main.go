@@ -7,17 +7,26 @@ import (
 	"strconv"
 )
 
-var x, y, n int
+func usage() {
+	s := `./gen <x> <y> <n>
+	x - width of maze
+	y - height of maze
+	n - number of randomly placed boulders in maze`
+	fmt.Println(s)
+	os.Exit(1)
+}
 
-func init() {
+func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	if flag.NArg() < 3 {
+	if flag.NArg() < 4 {
 		flag.Usage()
 	}
 
+	var x, y, n int
 	var err error
+
 	x, err = strconv.Atoi(flag.Arg(0))
 	if err != nil {
 		flag.Usage()
@@ -32,28 +41,14 @@ func init() {
 	if err != nil {
 		flag.Usage()
 	}
-}
 
-func usage() {
-	s := `./gen <x> <y> <n>
-	x - width of maze
-	y - height of maze
-	n - number of randomly placed boulders in maze`
+	// m, err = strconv.Atoi(flag.Arg(3))
+	// if err != nil {
+	// 	flag.Usage()
+	// }
+
+	b := newBoard(x, y)
+	s := b.solve(n)
+	b.print()
 	fmt.Println(s)
-	os.Exit(1)
-}
-
-func main() {
-	b := NewBoard(x, y, n).Solve()
-	for len(b.Solutions) != 1 {
-		b = NewBoard(x, y, n).Solve()
-	}
-
-	t := b.Entrance
-	for _, d := range b.Solutions[0] {
-		t = b.Walk(t, d, true)
-	}
-
-	b.Print()
-	fmt.Println("solution", b.Solutions[0])
 }

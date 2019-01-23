@@ -2,171 +2,224 @@ package main
 
 import (
 	"fmt"
-	"sort"
+	"log"
+	"math/rand"
+	"time"
 )
 
-type Direction string
+type direction string
 
 const (
-	Up    Direction = "U"
-	Down  Direction = "D"
-	Left  Direction = "L"
-	Right Direction = "R"
+	up    direction = "U"
+	down  direction = "D"
+	left  direction = "L"
+	right direction = "R"
 )
 
-type Board struct {
-	X         int
-	Y         int
-	Grid      []*Tile
-	Entrance  *Tile
-	Exit      *Tile
-	Solutions [][]Direction
+type board struct {
+	x, y     int
+	grid     []*tile
+	entrance *tile
 }
 
-func NewBoard(x, y, n int) *Board {
-	grid := make([]*Tile, 0, x*y)
-
+func newBoard(x, y int) *board {
+	grid := make([]*tile, 0, x*y)
 	for i := 0; i < x*y; i++ {
-		grid = append(grid, &Tile{
-			X:     i % x,
-			Y:     i / x,
-			Value: GetTileType(i, x, y),
-		})
+		grid = append(grid, newTile(i, x, y))
 	}
 
-	ent := Random(x, y, true)
-	ext := Random(x, y, true)
-	for Abs(ext.X-ent.X) <= 1 && Abs(ext.Y-ent.Y) <= 1 {
-		ext = Random(x, y, true)
-	}
-
-	grid[ent.Y*x+ent.X].Value = Entrance
-	grid[ext.Y*x+ext.X].Value = Exit
-
-	boulders := 0
-	for boulders < n {
-		b := Random(x, y, false)
-		i := b.Y*x + b.X
-		if grid[i].Value != Boulder {
-			grid[i].Value = Boulder
-			boulders++
-		}
-	}
-
-	return &Board{
-		X:        x,
-		Y:        y,
-		Grid:     grid,
-		Entrance: grid[ent.Y*x+ent.X],
-		Exit:     grid[ext.Y*x+ext.X],
+	return &board{
+		x:        x,
+		y:        y,
+		grid:     grid,
+		entrance: random(grid, wallVertical, wallHorizontal),
 	}
 }
 
-func (b *Board) Print() {
-	for i, t := range b.Grid {
-		fmt.Print(t.Value)
-		if i%b.X == b.X-1 {
+func (b *board) print() {
+	for i, t := range b.grid {
+		fmt.Print(t.value)
+		if i%b.x == b.x-1 {
 			fmt.Println()
 		}
 	}
 }
 
-func (b *Board) Solve() *Board {
-	d := b.Empty(b.Entrance)
-	if len(d) > 0 {
-		c := b.Next(b.Entrance, d[0])
-		b.Traverse(c, []Direction{})
-		sort.Slice(b.Solutions, func(i, j int) bool {
-			return len(b.Solutions[i]) < len(b.Solutions[j])
-		})
-	}
-	return b
-}
+func (b *board) next(t *tile) []direction {
+	var d []direction
 
-func (b *Board) Empty(t *Tile) []Direction {
-	var d []Direction
-
-	up := (t.Y-1)*b.X + t.X
-	if 0 < up && b.Grid[up].Value == Empty {
-		d = append(d, Up)
+	upI := (t.y-1)*b.x + t.x
+	if 0 < upI && b.grid[upI].value == empty {
+		d = append(d, up)
 	}
 
-	down := (t.Y+1)*b.X + t.X
-	if down < len(b.Grid) && b.Grid[down].Value == Empty {
-		d = append(d, Down)
+	downI := (t.y+1)*b.x + t.x
+	if downI < len(b.grid) && b.grid[downI].value == empty {
+		d = append(d, down)
 	}
 
-	left := t.Y*b.X + t.X - 1
-	if 0 < left && b.Grid[left].Value == Empty {
-		d = append(d, Left)
+	leftI := t.y*b.x + t.x - 1
+	if 0 < leftI && b.grid[leftI].value == empty {
+		d = append(d, left)
 	}
 
-	right := t.Y*b.X + t.X + 1
-	if right < len(b.Grid) && b.Grid[right].Value == Empty {
-		d = append(d, Right)
+	rightI := t.y*b.x + t.x + 1
+	if rightI < len(b.grid) && b.grid[rightI].value == empty {
+		d = append(d, right)
 	}
 
 	return d
 }
 
-func (b *Board) Next(t *Tile, d Direction) *Tile {
+func (b *board) step(t *tile, d direction) *tile {
 	var i int
 
 	switch d {
-	case Up:
-		i = (t.Y-1)*b.X + t.X
-	case Down:
-		i = (t.Y+1)*b.X + t.X
-	case Left:
-		i = t.Y*b.X + t.X - 1
-	case Right:
-		i = t.Y*b.X + t.X + 1
+	case up:
+		i = (t.y-1)*b.x + t.x
+	case down:
+		i = (t.y+1)*b.x + t.x
+	case left:
+		i = t.y*b.x + t.x - 1
+	case right:
+		i = t.y*b.x + t.x + 1
 	}
 
-	if 0 < i && i < len(b.Grid) {
-		return b.Grid[i]
+	if 0 < i && i < len(b.grid) {
+		return b.grid[i]
 	}
 
 	return nil
 }
 
-func (b *Board) Walk(t *Tile, d Direction, path bool) *Tile {
-	c := t
-	if path && t.Value != Entrance {
-		t.Value = Path
-	}
+func (b *board) walk(t1, t2 *tile, d direction) bool {
+	t := t1
 
-	for n := b.Next(t, d); n != nil && (n.Value == Empty || n.Value == Path || n.Value == Exit); n = b.Next(n, d) {
-		c = n
-		if path && n.Value != Entrance && n.Value != Exit {
-			n.Value = Path
+	for t.x != t2.x || t.y != t2.y {
+		t = b.step(t, d)
+		if t.value == boulder {
+			return false
 		}
 	}
 
-	return c
+	return true
 }
 
-func (b *Board) Traverse(t *Tile, s []Direction) {
-	t.Visited = true
-	e := b.Empty(t)
+func (b *board) mark(t1, t2 *tile, d direction, m tileType) {
+	t := t1
+	for t.x != t2.x || t.y != t2.y {
+		t = b.step(t, d)
+		t.value = m
+	}
+}
 
-	for _, d := range e {
-		w := b.Walk(t, d, false)
+func (b *board) nextSolutionTile(p *tile, d direction, exit bool, invalid []int) (*tile, direction) {
+	var v direction
+	var i int
+	var isWrongTileType bool
 
-		if w == nil || w.Value == Entrance {
-			continue
+	for i == 0 || i == (p.y*b.x+p.x) || isWrongTileType {
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+		if d == up || d == down {
+			if len(invalid) == b.y {
+				log.Fatal("failed to build board, try again")
+			}
+
+			y := r.Intn(b.y)
+			if contains(invalid, y) {
+				continue
+			}
+
+			i = y*b.x + p.x
+			v = up
+			if y-p.y > 0 {
+				v = down
+			}
+		} else {
+			if len(invalid) == b.x {
+				log.Fatal("failed to build board, try again")
+			}
+
+			x := r.Intn(b.x)
+			if contains(invalid, x) {
+				continue
+			}
+
+			i = p.y*b.x + x
+			v = left
+			if x-p.x > 0 {
+				v = right
+			}
 		}
 
-		solution := make([]Direction, len(s))
-		copy(solution, s)
-		solution = append(solution, d)
-
-		if w.Value == Exit {
-			b.Solutions = append(b.Solutions, solution)
-		}
-
-		if w.Value == Empty && !w.Visited {
-			b.Traverse(w, solution)
+		isWrongTileType = b.grid[i].value != empty
+		if exit {
+			isWrongTileType = b.grid[i].value != wallHorizontal && b.grid[i].value != wallVertical
 		}
 	}
+
+	tn := b.step(b.grid[i], v)
+	walkable := b.walk(p, b.grid[i], v)
+	validNextTile := b.grid[i].value == empty && tn.value == empty
+	if walkable && (exit || validNextTile) {
+		b.mark(p, b.grid[i], v, path)
+		return b.grid[i], v
+	}
+
+	return b.nextSolutionTile(p, d, exit, append(invalid, i))
+}
+
+func (b *board) solve(n int) []direction {
+	b.entrance.value = entrance
+	prev := b.entrance
+	prevD := b.next(prev)[0]
+	solution := []direction{}
+
+	for i := 0; i < n-1; i++ {
+		// randomly generate next solution tile along same x- or y-axis
+		t, v := b.nextSolutionTile(prev, prevD, false, []int{})
+		solution = append(solution, v)
+		prev = t
+
+		// set boulder
+		tn := b.step(t, v)
+		tn.value = boulder
+
+		// toggle d axis for next path
+		if v == left || v == right {
+			prevD = up
+		} else {
+			prevD = left
+		}
+	}
+
+	prev, prevD = b.nextSolutionTile(prev, prevD, true, []int{})
+	solution = append(solution, prevD)
+	prev.value = exit
+
+	return solution
+}
+
+func random(grid []*tile, only ...tileType) *tile {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	i := r.Intn(len(grid))
+
+	for _, t := range only {
+		if t == grid[i].value {
+			return grid[i]
+		}
+	}
+
+	return random(grid, only...)
+}
+
+func contains(slice []int, i int) bool {
+	for _, x := range slice {
+		if i == x {
+			return true
+		}
+	}
+
+	return false
 }

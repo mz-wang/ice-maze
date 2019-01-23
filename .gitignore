@@ -11,8 +11,8 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# intellij
-.idea/*
+# vscode
+.vscode/*
 
 # binary executable
-generate
+ice-maze
