@@ -14,9 +14,9 @@ const (
 )
 
 type tile struct {
-	x     int      `json:"x"`
-	y     int      `json:"y"`
-	value tileType `json:"value"`
+	X     int      `json:"x"`
+	Y     int      `json:"y"`
+	Value tileType `json:"value"`
 }
 
 func newTile(i, x, y int) *tile {
@@ -30,8 +30,8 @@ func newTile(i, x, y int) *tile {
 	}
 
 	return &tile{
-		x:     i % x,
-		y:     i / x,
-		value: value,
+		X:     i % x,
+		Y:     i / x,
+		Value: value,
 	}
 }

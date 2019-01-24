@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -48,7 +49,15 @@ func main() {
 	// }
 
 	b := newBoard(x, y)
-	s := b.solve(n)
-	b.print()
-	fmt.Println(s)
+
+	defer func() {
+		j, err := json.Marshal(b)
+		if r := recover(); r == nil && err == nil {
+			fmt.Println(string(j))
+		} else {
+			fmt.Print("null")
+		}
+	}()
+
+	b.solve(n)
 }
